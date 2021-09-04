@@ -1,0 +1,228 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class CarSelection : MonoBehaviour
+{
+    //current car index 
+    public byte current_carIndex;
+    //all car prices 
+    public int[] car_Price;
+    //total coins to be stored in global script
+    public int total_Coins;
+    public Text total_CoinsText;
+    public Text car_PriceText;
+    //total cars array
+    public GameObject[] cars;
+    public GameObject my_Car;
+    //buttons 
+    public Button next_Button,prev_Button,select_Button,buy_Button;
+    public Image slider_img;
+    public bool is_loading;
+    public GameObject loading_panel,not_enaughmoneypanel;
+    public Text progress_Text,car_name_Text;
+    public string[] car_names;
+    public Image img_top_speed, img_handling, img_brake, img_boost;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        GlobleScript.AddCoins(300);
+        //GlobleScript.AddCoins(50);
+        //total coins from global script are stored in total_coins variables
+        total_Coins =  GlobleScript.TotalCoins();
+        total_CoinsText.text=total_Coins.ToString();
+        
+        print(total_Coins);
+        //when car is selected then its value stored in this playerpref and stored in current_Carindex variable
+        current_carIndex =(byte)PlayerPrefs.GetInt("CurrentPlayerSelect", 0);
+        //for loop here used to deactivated all cars 
+        for (int i = 0; i < cars.Length; i++)
+        {
+            cars[i].gameObject.SetActive(false);
+        }
+        //current car activated
+        cars[current_carIndex].gameObject.SetActive(true);
+        // buyorselect() function is used if the total coins is greater then current car price then select button activated
+        BuyOrSelect(current_carIndex);
+        SetCarSpecies(current_carIndex);
+        is_loading=false;
+    }
+    //NextCar() function is applied on next button when we click on next button the current_carIndex increase by 1 
+    public void NextCar(AudioSource audio)
+    {
+        print(total_Coins);
+        audio?.Play();
+        //when we click on next button the current_carIndex increase by 1
+        current_carIndex++;
+        //curretn car set activaed 
+        cars[current_carIndex].SetActive(true);
+        //previous car set deactivated
+        cars[current_carIndex - 1].SetActive(false);
+        //prev button set activated 
+        prev_Button.GetComponent<Button>().interactable = true;
+        // when current_curindex+1 equal to cars array length 
+        if (current_carIndex + 1 == cars.Length)
+        {
+            //// when current_curindex+1 equal to cars array length the next button set deactivated
+            next_Button.GetComponent<Button>().interactable = false;
+
+        }
+        // buyorselect() function is used if the total coins is greater then current car price then select button activated
+        BuyOrSelect(current_carIndex);
+        SetCarSpecies(current_carIndex);
+        car_PriceText.text=car_Price[current_carIndex].ToString();
+
+
+    }
+    //PreviousCar() function is applied on prev button when we click on prev button the current_carIndex decrease by 1 
+    public void PreviousCar(AudioSource audio)
+    {
+        audio?.Play();
+        //when we click on prev button the current_carIndex decrease by 1
+        current_carIndex--;
+        cars[current_carIndex].SetActive(true);
+        cars[current_carIndex + 1].SetActive(false);
+        next_Button.GetComponent<Button>().interactable = true;
+        if (current_carIndex == 0)
+        {
+            prev_Button.GetComponent<Button>().interactable = false;
+
+        }
+
+        BuyOrSelect(current_carIndex);
+        SetCarSpecies(current_carIndex);
+        car_PriceText.text=car_Price[current_carIndex].ToString();
+    }
+
+    public void BuyOrSelect(int current_car)
+    {
+
+        print(total_Coins);
+        
+        if (PlayerPrefs.GetInt("current_Car"+current_car.ToString(),0)==1)
+        {
+            select_Button.gameObject.SetActive(true);
+            buy_Button.gameObject.SetActive(false);
+        }
+       
+        else
+        {
+            
+            buy_Button.gameObject.SetActive(true);
+            select_Button.gameObject.SetActive(false);
+        }
+        if (current_car==0)
+        {
+            select_Button.gameObject.SetActive(true);
+            buy_Button.gameObject.SetActive(false);
+
+        }
+    }
+
+    public void SelectCar(AudioSource audio)
+    {
+        audio?.Play();
+        PlayerPrefs.SetInt("CurrentPlayerSelect", current_carIndex);
+        is_loading=true;
+        loading_panel.SetActive(true);
+        StartCoroutine(LoadAsynchorounsly("GamePlay"));
+
+
+    }
+    public void BuyCar(AudioSource audio)
+    {
+        //print("buy car");
+        audio?.Play();
+        total_Coins = GlobleScript.TotalCoins();
+        if (total_Coins<car_Price[current_carIndex])
+        {
+            not_enaughmoneypanel.SetActive(true);
+        }
+        else
+        {
+            PlayerPrefs.SetInt("current_Car"+current_carIndex,1);
+
+            int coins = total_Coins-car_Price[current_carIndex];
+            print(coins);
+            GlobleScript.AddCoins(coins);
+            buy_Button.gameObject.SetActive(false);
+            select_Button.gameObject.SetActive(true);
+            total_CoinsText.text=GlobleScript.TotalCoins().ToString();
+        }
+        print(total_Coins);
+        
+    }
+    public void SetCarSpecies(int carIndex)
+    {
+
+
+        img_top_speed.fillAmount=cars[carIndex].gameObject.GetComponent<car_script>().speed;
+        img_handling.fillAmount=cars[carIndex].gameObject.GetComponent<car_script>().steering;
+        img_brake.fillAmount=cars[carIndex].gameObject.GetComponent<car_script>().brakes;
+        img_boost.fillAmount=cars[carIndex].gameObject.GetComponent<car_script>().accelration;
+    
+
+        //car_name_Text.text=car_names[carIndex];
+
+
+    }
+
+    IEnumerator LoadAsynchorounsly(string sceneName)
+    {
+        if (sceneName=="GamePlay")
+        {
+            AsyncOperation operation = SceneManager.LoadSceneAsync("GamePlay");
+    
+        
+
+        while (slider_img.fillAmount!=1 && is_loading==true)
+        {
+            //float progress = Mathf.Clamp01(operation.progress/.05f*Time.deltaTime);
+            slider_img.fillAmount+=Mathf.Abs(0.00005f*Time.deltaTime);
+            progress_Text.text=slider_img.fillAmount*100f+"%";
+            if (slider_img.fillAmount>=1)
+            {
+                is_loading=false;
+                slider_img.fillAmount=0;
+                operation.allowSceneActivation=true;
+            }
+            
+           
+            yield return null;
+        }
+        }
+        else if (sceneName=="MainMenu")
+        {
+            AsyncOperation operation = SceneManager.LoadSceneAsync("MainMenu");
+
+
+
+            while (slider_img.fillAmount!=1&&is_loading==true)
+            {
+                //float progress = Mathf.Clamp01(operation.progress/.05f*Time.deltaTime);
+                slider_img.fillAmount+=Mathf.Abs(0.00005f*Time.deltaTime);
+                progress_Text.text=slider_img.fillAmount*100f+"%";
+                if (slider_img.fillAmount>=1)
+                {
+                    is_loading=false;
+                    slider_img.fillAmount=0;
+                    operation.allowSceneActivation=true;
+                }
+
+
+                yield return null;
+            }
+        }
+    }
+
+    public void BackToMainMenu(AudioSource audio)
+    {
+        audio?.Play();
+        loading_panel.SetActive(true);
+        is_loading=true;
+       StartCoroutine(LoadAsynchorounsly("MainMenu"));
+    }
+}
