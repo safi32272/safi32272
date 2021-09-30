@@ -1,0 +1,5 @@
+private static ARInputManager _instance;
+
+		private static ARInputManager Instance {
+			get { return _instance ?? (_instance = new ARInputManager ()); }
+		}
