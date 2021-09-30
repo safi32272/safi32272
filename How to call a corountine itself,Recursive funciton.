@@ -1,0 +1,18 @@
+when a function is calle itself called rescursive funciton.
+ IEnumerator PlayerFoounder()
+    {
+        yield return new WaitForSeconds(1f);
+       
+        while (is_PlayerFound != true)
+        {
+             DistanceFromTarget = Vector3.Distance(target.transform.position, transform.position);
+                if (DistanceFromTarget <= 10)
+                {
+                PedType = PedTypes.Fighter;
+                is_PlayerFound = true;
+                    StopCoroutine(PlayerFoounder());
+                }
+                yield return StartCoroutine(PlayerFoounder());  
+        }
+
+    }
