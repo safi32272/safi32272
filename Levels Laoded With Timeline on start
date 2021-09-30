@@ -1,0 +1,53 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.Timeline;
+
+
+public class LevelsManager :MonoBehaviour
+{
+    public GameObject[] levels;
+    public Transform[] player_positon;
+    public GameObject Player;
+    public int current_level;
+
+    public PlayableDirector director;
+    public TimelineAsset[] timeln;
+    public GameObject control_panel;
+    public GameObject skip_button;
+
+    private void Awake()
+    {
+        current_level = PlayerPrefs.GetInt("CurrentLevel", 0);
+        //current_level = 3;
+
+        foreach (var lvl in levels)
+        {
+            lvl.gameObject.SetActive(false);
+        }
+        levels[current_level].gameObject.SetActive(true);
+        
+        //playeable_director.played += timelines[current_level];
+        skip_button.SetActive(true);
+        director.playableAsset = timeln[current_level];
+        director.Play();
+    
+
+    }
+    private void Start()
+    {
+        PlayerPosition(current_level);
+    }
+    public void PlayerPosition(int level_index)
+    {
+        Player.transform.position = player_positon[level_index].transform.position;
+        Player.transform.rotation = player_positon[level_index].transform.rotation;
+    }
+
+    public void SkipTimeline()
+    {
+        director.Stop();
+        levels[current_level].GetComponent<LevelActivities>().skip_button.gameObject.SetActive(false);
+    }
+}
