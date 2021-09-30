@@ -1,0 +1,30 @@
+  IEnumerator LoadScene(string sceneName)
+    {
+        yield return null;
+        AsyncOperation asyncOperation;
+        //Begin to load the Scene you specify
+        if (sceneName == "GamePlay")
+        {
+            asyncOperation = SceneManager.LoadSceneAsync("GamePlay");
+            asyncOperation.allowSceneActivation = false;
+
+            while (loading_image.fillAmount != 1 && is_loading == true)
+            {
+                //Output the current progress
+                loading_image.fillAmount = loading_image.fillAmount + 0.08f * Time.deltaTime*1;
+                string percent = (loading_image.fillAmount * 100).ToString("F0");
+                loading_Text.text = string.Format("<size=35>{0}%</size>", percent);
+                // Check if the load has finished
+                if (loading_image.fillAmount == 1f)
+                {
+                    is_loading = false;
+                    loading_image.fillAmount = 0;
+                    //Change the Text to show the Scene is ready
+                    asyncOperation.allowSceneActivation = true;
+                    loading_image.GetComponent<Animator>().enabled = true;
+                }
+
+                yield return null;
+            }
+        }
+    }
