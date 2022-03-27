@@ -11,11 +11,11 @@ public class StartImagecontroller : MonoBehaviour {
 	public static int firstcount = 0;
 	// Use this for initialization
 	void Awake(){
-//		PlayerPrefs.DeleteAll ();
-	
+
 	}
 	void Start () {
 
+		//		PlayerPrefs.DeleteAll ();
 		if (firstcount==0)
 		{
 			firstcount++;
